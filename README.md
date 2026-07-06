@@ -1,107 +1,88 @@
-# Toolkit Go — AgentRT Go SDK
+**Language:** English | [简体中文](README_zh.md)
 
-**版本**: v0.1.0
+# Airymax Go SDK
 
-## 概述
+[![Version](https://img.shields.io/badge/version-0.1.1-5a6b7e)](https://atomgit.com/openairymax/sdk-go)
+[![License](https://img.shields.io/badge/license-AGPL--3.0+Apache--2.0-4a90d9)](LICENSE)
+[![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go&logoColor=white)](https://go.dev)
 
-AgentRT Go SDK 提供基于 Go 语言的 AgentRT 系统编程接口，采用惯用的 Go 风格设计，支持 goroutine 并发模型。SDK 包含客户端层、业务模块层（Task/Memory/Session/Skill）、系统调用绑定、遥测、插件系统和类型定义，与 Python/Rust/TypeScript SDK 保持 API 一致性。
+> Official Go development kit for the [Airymax](https://atomgit.com/openairymax/airymaxhub) AI Agent Runtime Platform.
+> One of the leaf repositories aggregated by the [sdk](https://atomgit.com/openairymax/sdk) management repo.
 
-## 目录结构
+---
+
+## Overview
+
+The **Airymax Go SDK** (`agentrt`) provides an idiomatic Go interface to the Airymax runtime. It shares the same double-layer API architecture as the other language SDKs and leans on Go's standard library for the HTTP/JSON stack, so it ships with **no external runtime dependencies**. Concurrency is expressed through goroutines and `context.Context`, and the client surfaces a typed error-code system that maps 1:1 with the runtime's response codes.
+
+Agent applications built on this SDK are **runtime tenants**: they invoke system capabilities through the SDK rather than touching kernel internals directly.
+
+## Double-Layer API Architecture
+
+Every Airymax SDK ships a top-level `AgentRTClient` that nests four resource clients, each covering one plane of the runtime:
 
 ```
-go/
+AgentRTClient
+├── CognitionClient   # Cognition plane: tasks / loops / inference
+├── SafetyClient      # Safety plane: audit / sandbox / policy
+├── ToolClient        # Tool plane: register / invoke / orchestrate
+└── ChatClient        # Chat plane: LLM routing / sessions / streaming
+```
+
+The Go client exposes these as `client.Cognition`, `client.Safety`, `client.Tool`, and `client.Chat`, backed by a connection-pooled HTTP transport with retry and backoff.
+
+## Directory Structure
+
+```
+sdk-go/
 ├── agentrt/
-│   ├── agentrt.go              # 版本信息（Version/Author/License）
-│   ├── config.go               # 配置管理（Config/ConfigOption/环境变量）
-│   ├── protocol.go             # 协议处理
-│   ├── errors.go               # 错误定义与错误码
+│   ├── agentrt.go              # Version / Author / License constants
+│   ├── config.go               # Config / ConfigOption / env-var loading
+│   ├── protocol.go             # Protocol handling
+│   ├── errors.go               # Error types + error-code constants
 │   ├── client/
-│   │   ├── client.go           # APIClient/Client/ClientConfig
-│   │   └── mock.go             # MockClient 测试客户端
-│   ├── modules/
-│   │   ├── modules.go          # 模块导出
-│   │   ├── base_manager.go     # BaseManager 基类
-│   │   ├── task/
-│   │   │   ├── manager.go      # TaskManager
-│   │   │   ├── manager_test.go # TaskManager 测试
-│   │   │   └── benchmark_test.go # 性能基准
-│   │   ├── memory/
-│   │   │   ├── manager.go      # MemoryManager
-│   │   │   └── manager_test.go # MemoryManager 测试
-│   │   ├── session/
-│   │   │   ├── manager.go      # SessionManager
-│   │   │   └── manager_test.go # SessionManager 测试
-│   │   └── skill/
-│   │       ├── manager.go      # SkillManager
-│   │       └── manager_test.go # SkillManager 测试
-│   ├── plugin/
-│   │   ├── plugin.go           # Plugin 系统
-│   │   └── plugin_test.go      # Plugin 测试
-│   ├── syscall/
-│   │   ├── syscall.go          # 系统调用绑定
-│   │   └── syscall_test.go     # 系统调用测试
-│   ├── telemetry/
-│   │   ├── telemetry.go        # OpenTelemetry 遥测
-│   │   └── telemetry_test.go   # 遥测测试
-│   ├── types/
-│   │   ├── types.go            # 类型定义
-│   │   └── types_test.go       # 类型测试
-│   └── utils/
-│       ├── helpers.go          # 工具函数
-│       └── helpers_test.go     # 工具函数测试
-├── go.mod                      # Go 模块配置
-└── README.md                   # 本文件
+│   │   ├── client.go           # APIClient / Client / ClientConfig
+│   │   └── mock.go             # MockClient for tests
+│   ├── modules/                # Domain module managers
+│   │   ├── modules.go          # Module exports
+│   │   ├── base_manager.go     # BaseManager
+│   │   ├── task/               # TaskManager (+ benchmark_test)
+│   │   ├── memory/             # MemoryManager
+│   │   ├── session/            # SessionManager
+│   │   └── skill/              # SkillManager
+│   ├── plugin/                 # Plugin system
+│   ├── syscall/                # Syscall bindings
+│   ├── telemetry/              # OpenTelemetry tracing
+│   ├── types/                  # Enums + domain models
+│   └── utils/                  # Helpers
+├── go.mod                      # Go module: github.com/spharx/agentrt/sdk/go
+└── README.md                   # This file
 ```
 
-## 核心组件
+## Upstream & Downstream Dependencies
 
-### 客户端层
+### Upstream
 
-| 类型 | 说明 |
-|------|------|
-| `Client` | 同步 HTTP 客户端，支持 API Key 认证 |
-| `APIClient` | 高级 API 客户端，封装所有业务模块 |
-| `ClientConfig` | 客户端配置（endpoint/timeout/maxRetries/apiKey） |
-| `MockClient` | 测试用 Mock 客户端 |
+- **Runtime**: Connects to a running Airymax / AgentRT instance (`gateway_d`) over HTTP and JSON-RPC 2.0.
+- **Protocol**: Speaks the AgentsIPC protocol defined in the platform `protocols/` tree.
+- **Configuration**: Resolved from functional options, then environment variables (`AGENTRT_ENDPOINT`, `AGENTRT_TIMEOUT`, `AGENTRT_API_KEY`), then a `http://127.0.0.1:18789` default.
 
-### 业务模块层
+### Downstream
 
-| 管理器 | 说明 | 核心方法 |
-|--------|------|----------|
-| `TaskManager` | 任务管理 | Submit/Get/Cancel/List/Wait |
-| `MemoryManager` | 记忆管理 | Write/Read/Search/Delete/List |
-| `SessionManager` | 会话管理 | Create/Get/Close/List |
-| `SkillManager` | 技能管理 | Load/Execute/Unload/List |
+- **Agent applications**: User-written agents import `agentrt` to become runtime tenants.
+- **Examples**: Reference agents in the platform `ecosystem/examples/`.
 
-### 类型定义
+## Installation
 
-| 类型 | 说明 |
-|------|------|
-| `Task` / `TaskResult` | 任务与结果 |
-| `Memory` / `MemorySearchResult` | 记忆与搜索结果 |
-| `Session` | 会话 |
-| `Skill` / `SkillResult` / `SkillInfo` | 技能与执行结果 |
-| `TaskStatus` | 任务状态枚举 |
-| `MemoryLayer` | 记忆层级（L1/L2/L3/L4） |
-| `SessionStatus` | 会话状态枚举 |
-| `SkillStatus` | 技能状态枚举 |
+```bash
+go get github.com/spharx/agentrt/sdk/go
+```
 
-### 错误码体系
+**Requirements:** Go >= 1.22. **No external runtime dependencies** — only the Go standard library (`net/http`, `encoding/json`, `context`, `sync`).
 
-| 常量 | 值 | 说明 |
-|------|-----|------|
-| `CODE_SUCCESS` | `0x0000` | 成功 |
-| `CODE_TIMEOUT` | `0x0004` | 超时 |
-| `CODE_NOT_FOUND` | `0x0005` | 未找到 |
-| `CODE_NETWORK_ERROR` | `0x000A` | 网络错误 |
-| `CODE_TASK_FAILED` | `0x3001` | 任务失败 |
-| `CODE_MEMORY_NOT_FOUND` | `0x4001` | 记忆未找到 |
-| `CODE_SESSION_EXPIRED` | `0x4005` | 会话过期 |
-| `CODE_SKILL_NOT_FOUND` | `0x4006` | 技能未找到 |
+## Quick Start
 
-## 使用说明
-
-### Client 初始化
+### Client initialization
 
 ```go
 import "agentrt"
@@ -112,96 +93,42 @@ if err != nil {
 }
 defer client.Close()
 
-clientWithKey, err := agentrt.NewClientWithAPIKey("http://localhost:18789", "your-api-key")
+clientWithKey, _ := agentrt.NewClientWithAPIKey("http://localhost:18789", "your-api-key")
 ```
 
-### TaskManager
+### Cognition plane — tasks
 
 ```go
-taskManager := client.TaskManager()
+ctx := context.Background()
 
-task, err := taskManager.Submit(ctx, "analyze this data")
-result, err := taskManager.Wait(ctx, task.ID, 30*time.Second)
-tasks, err := taskManager.List(ctx, &agentrt.ListOptions{Limit: 10})
-err := taskManager.Cancel(ctx, taskID)
+task, err := client.Cognition.SubmitTask(ctx, "analyze this data")
+result, err := client.Cognition.Wait(ctx, task.ID, 30*time.Second)
 ```
 
-### MemoryManager
+### Tool plane — invocation
 
 ```go
-memoryManager := client.MemoryManager()
-
-memoryID, err := memoryManager.Write(ctx, "important data", nil)
-memories, err := memoryManager.Search(ctx, "query", 5)
-memory, err := memoryManager.Read(ctx, memoryID)
-err := memoryManager.Delete(ctx, memoryID)
+res, err := client.Tool.Invoke(ctx, "web-scraper", map[string]any{"url": "https://example.com"})
 ```
 
-### SessionManager
-
-```go
-sessionManager := client.SessionManager()
-
-session, err := sessionManager.Create(ctx)
-session, err := sessionManager.Get(ctx, sessionID)
-err := sessionManager.Close(ctx, sessionID)
-```
-
-### SkillManager
-
-```go
-skillManager := client.SkillManager()
-
-skill, err := skillManager.Load(ctx, "browser-skill")
-result, err := skillManager.Execute(ctx, skill.ID, params)
-err := skillManager.Unload(ctx, skill.ID)
-```
-
-### 配置说明
+### Configuration
 
 ```go
 config := agentrt.NewConfig(
     agentrt.WithEndpoint("http://localhost:18789"),
-    agentrt.WithTimeout(30 * time.Second),
+    agentrt.WithTimeout(30*time.Second),
     agentrt.WithMaxRetries(3),
     agentrt.WithAPIKey("your-api-key"),
     agentrt.WithUserAgent("my-app/1.0"),
     agentrt.WithDebug(true),
 )
+client, _ := agentrt.NewClientWithConfig(config)
 
-client, err := agentrt.NewClientWithConfig(config)
+// Or load entirely from the environment:
+config = agentrt.NewConfigFromEnv()
 ```
 
-也支持从环境变量加载配置：
-
-```go
-config := agentrt.NewConfigFromEnv()
-// AGENTRT_ENDPOINT, AGENTRT_TIMEOUT, AGENTRT_API_KEY
-```
-
-## 依赖关系
-
-- **Go 版本**: >= 1.22
-- **核心依赖**: Go 标准库（net/http, encoding/json, context, sync）
-- **无外部运行时依赖**
-
-## 构建与测试
-
-```bash
-# 安装
-go get agentrt
-
-# 运行测试
-go test ./...
-
-# 运行基准测试
-go test -bench=. ./...
-
-# 运行特定模块测试
-go test ./agentrt/modules/task/...
-```
-
-## 完整示例
+### Complete example
 
 ```go
 package main
@@ -224,25 +151,37 @@ func main() {
 
     ctx := context.Background()
 
-    task, err := client.TaskManager().Submit(ctx, "analyze sales data")
+    task, err := client.Cognition.SubmitTask(ctx, "analyze sales data")
     if err != nil {
         log.Fatal(err)
     }
-
-    result, err := client.TaskManager().Wait(ctx, task.ID, 60*time.Second)
+    result, err := client.Cognition.Wait(ctx, task.ID, 60*time.Second)
     if err != nil {
         log.Fatal(err)
     }
     fmt.Printf("Task result: %s\n", result.Output)
-
-    memoryID, err := client.MemoryManager().Write(ctx, "analysis result", nil)
-    if err != nil {
-        log.Fatal(err)
-    }
-    fmt.Printf("Memory saved: %s\n", memoryID)
 }
 ```
 
----
+## Build & Test
 
-© 2026 SPHARX Ltd. All Rights Reserved.
+```bash
+# Run all tests
+go test ./...
+
+# Run benchmarks
+go test -bench=. ./...
+
+# Run a specific module
+go test ./agentrt/modules/task/...
+```
+
+## Branch Strategy
+
+This leaf repository is developed on **`feature/official-hubs-01`**. The aggregating `sdk` management repo stays on `main`.
+
+## License
+
+Dual-licensed under **AGPL v3 + Apache 2.0** (SPDX: `AGPL-3.0-or-later OR Apache-2.0`). See [LICENSE](LICENSE) for the full text.
+
+Copyright (c) 2025-2026 **SPHARX Ltd.** All Rights Reserved.
