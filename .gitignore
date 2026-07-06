@@ -1,0 +1,46 @@
+# =============================================================================
+# Airymax SDK Go — .gitignore
+# =============================================================================
+
+# Go 构建产物
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go 测试覆盖率
+cover.out
+cover.html
+
+# Go 模块
+vendor/
+
+# IDE 配置
+.vscode/
+.idea/
+.vs/
+*.code-workspace
+
+# 环境与密钥
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 编辑器临时文件
+*.swp
+*.swo
+*~
+
+# 日志与临时文件
+*.log
+*.tmp
+*.bak
