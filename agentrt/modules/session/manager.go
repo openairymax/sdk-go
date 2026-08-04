@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentOS Go SDK - 会话管理模块
-// Version: 0.1.0
+// Version: 0.1.1
 // Last updated: 2026-03-22
 //
 // 提供会话的创建、查询、上下文管理、清理等生命周期管理功能。

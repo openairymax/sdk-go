@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentOS Go SDK - Mock 客户端实现
-// Version: 0.1.0
+// Version: 0.1.1
 //
 // 提供 APIClient 接口的 Mock 实现，仅供单元测试使用。
 // 警告：此文件为测试工具，不应在生产代码中使用。

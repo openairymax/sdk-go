@@ -36,7 +36,7 @@ func DefaultConfig() *Config {
 		Timeout:         30 * time.Second,
 		MaxRetries:      3,
 		RetryDelay:      1 * time.Second,
-		UserAgent:       "AgentOS-Go-tools/0.1.0",
+		UserAgent:       "AgentOS-Go-tools/0.1.1",
 		LogLevel:        "info",
 		MaxConnections:  10,
 		IdleConnTimeout: 90 * time.Second,

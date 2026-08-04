@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentOS Go SDK - 客户端边界条件测试
-// Version: 0.1.0
+// Version: 0.1.1
 // Last updated: 2026-04-05
 //
 // 测试客户端在各种边界条件下的行为

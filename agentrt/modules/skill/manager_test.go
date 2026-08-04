@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentOS Go SDK - 技能管理模块单元测试
-// Version: 0.1.0
+// Version: 0.1.1
 
 package skill
 

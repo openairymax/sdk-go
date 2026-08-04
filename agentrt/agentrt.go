@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	Version = "0.1.0"
+	Version = "0.1.1"
 	Author  = "SPHARX Ltd."
-	License = "MIT"
+	License = "AGPL-3.0-or-later OR Apache-2.0"
 )
 
 var defaultLogger = log.New(os.Stderr, "[AgentOS] ", log.LstdFlags|log.Lshortfile)

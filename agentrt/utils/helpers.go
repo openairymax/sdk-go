@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentOS Go SDK - 公共辅助函数模块
-// Version: 0.1.0
+// Version: 0.1.1
 // Last updated: 2026-03-22
 //
 // 提供类型安全的 map 数据提取、API 响应解析和 URL 构建等通用工具函数。
