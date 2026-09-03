@@ -2,7 +2,7 @@
 
 # Airymax Go SDK
 
-[![Version](https://img.shields.io/badge/version-0.1.1-5a6b7e)](https://atomgit.com/openairymax/sdk-go)
+[![Version](https://img.shields.io/badge/version-0.1.9-5a6b7e)](https://atomgit.com/openairymax/sdk-go)
 [![License](https://img.shields.io/badge/license-AGPL--3.0+Apache--2.0-4a90d9)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go&logoColor=white)](https://go.dev)
 
@@ -178,7 +178,7 @@ go test ./agentrt/modules/task/...
 
 ## Branch Strategy
 
-This leaf repository is developed on **`feature/official-hubs-01`**. The aggregating `sdk` management repo stays on `main`.
+This leaf repository is developed on **`develop/hubs-01`**; its `main` is a release snapshot. The aggregating `sdk` management repo develops directly on `main`.
 
 ## License
 
